@@ -13,5 +13,18 @@ UCLASS()
 class SPATIALDISPLACEMENT_API ASDPlayerController : public APlayerController
 {
 	GENERATED_BODY()
+
+public:
+	ASDPlayerController();
+
+	virtual void SetupInputComponent()override;
+
+protected:
+	virtual void BeginPlay() override;
 	
+private:
+	class ASDPawn* SDPawnRef;
+
+	void Up(float AxisValue);
+	void Turn(float AxisValue);
 };
