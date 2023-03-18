@@ -2,7 +2,7 @@
 
 
 #include "SDPlayerController.h"
-#include "SDPawn.h"
+#include "Pawn/SDPawn.h"
 
 ASDPlayerController::ASDPlayerController()
 {
