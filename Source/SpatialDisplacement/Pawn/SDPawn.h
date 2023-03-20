@@ -34,7 +34,7 @@ public:
 		float angularDamping = 100.f;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
-		bool canTurn = false;
+		bool bCanTurn = false;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
 		FRotator initialRotation;
@@ -46,7 +46,13 @@ public:
 		bool bIsLanding = false;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
+		bool bEmptyFuel = false;
+
+	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
 		FString currentLevel;
+
+	UPROPERTY(Transient)
+		UWorld* currentWorld;
 
 protected:
 	// Called when the game starts or when spawned
@@ -61,7 +67,9 @@ public:
 
 	void Up(float AxisValue);
 	void Turn(float AxisValue);
-	void ToLand();
+
+private:
+	void ToLand(float DeltaTime);
 	void PrintState();
 
 };

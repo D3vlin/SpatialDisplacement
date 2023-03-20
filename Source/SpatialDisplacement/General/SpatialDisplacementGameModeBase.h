@@ -13,5 +13,11 @@ UCLASS()
 class SPATIALDISPLACEMENT_API ASpatialDisplacementGameModeBase : public AGameModeBase
 {
 	GENERATED_BODY()
-	
+
+protected:
+	virtual void BeginPlay() override;
+
+public:
+	UPROPERTY(Transient)
+		TObjectPtr<class ASDCameraActor> CameraActor;
 };

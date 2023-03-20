@@ -23,8 +23,10 @@ protected:
 	virtual void BeginPlay() override;
 	
 private:
-	class ASDPawn* SDPawnRef;
+	UPROPERTY(Transient)
+		class ASDPawn* PawnActor;
 
 	void Up(float AxisValue);
+
 	void Turn(float AxisValue);
 };

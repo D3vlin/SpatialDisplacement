@@ -13,5 +13,11 @@ UCLASS()
 class SPATIALDISPLACEMENT_API ASDGameStateBase : public AGameStateBase
 {
 	GENERATED_BODY()
+
+protected:
+	virtual void BeginPlay() override;
 	
+public:
+	UPROPERTY(Transient)
+		FString CurrentLevel;
 };
