@@ -4,6 +4,8 @@
 #include "SDPawn.h"
 #include "Kismet/GamePlayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
+#include "SpatialDisplacement/General/SDGameStateBase.h"
+#include "SpatialDisplacement/Actor/Stage.h"
 
 // Sets default values
 ASDPawn::ASDPawn()
@@ -19,7 +21,11 @@ ASDPawn::ASDPawn()
 	StaticMesh->SetEnableGravity(true);
 	StaticMesh->BodyInstance.bLockXTranslation = true;
 	StaticMesh->BodyInstance.bLockYRotation = true;
+	StaticMesh->SetGenerateOverlapEvents(true);
 	RootComponent = StaticMesh;
+
+	StaticMesh->OnComponentBeginOverlap.AddDynamic(this, &ASDPawn::OnOverlapBegin);
+	StaticMesh->OnComponentEndOverlap.AddDynamic(this, &ASDPawn::OnOverlapEnd);
 }
 
 // Called when the game starts or when spawned
@@ -42,13 +48,6 @@ void ASDPawn::Tick(float DeltaTime)
 	}
 
 	PrintState();
-}
-
-// Called to bind functionality to input
-void ASDPawn::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
-{
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-
 }
 
 void ASDPawn::Up(float AxisValue) {
@@ -79,23 +78,49 @@ void ASDPawn::Turn(float AxisValue) {
 void ASDPawn::ToLand(float DeltaTime) {
 	landingTime -= DeltaTime;
 	FRotator currentRotation = GetActorRotation();
-	if (currentRotation != initialRotation)
+	if (currentRotation != initialRotation && landingTime > 0)
 	{
 		FRotator targetRotation = UKismetMathLibrary::RInterpTo(currentRotation, initialRotation, DeltaTime, 7.0f);
 		SetActorRotation(targetRotation);
 	}
+
+	if (landingTime <= 0) {
+		ASDGameStateBase* GameState = GetWorld()->GetGameState<ASDGameStateBase>();
+		GameState->RestartLevel();
+	}
 }
 
 void ASDPawn::PrintState() {
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("R Inicial = %s, R Actual = %s"), *initialRotation.ToString(), *GetActorRotation().ToString()));
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Puede rotar = %b"), bCanTurn));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("R Inicial = %s, R Actual = %s"), *initialRotation.ToString(), *GetActorRotation().ToString()));
+	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Puede rotar = %d"), (bCanTurn) ? 1 : 0));
 	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Fuel = %f"), fuel));
 	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Velocidad = %s"), *StaticMesh->GetComponentVelocity().ToString()));
 
 	if (landingTime <= 0)
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Green, FString::Printf(TEXT("Aterrizaste"), bIsLanding, landingTime));
+		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Green, FString::Printf(TEXT("Aterrizaste")));
 	else
-		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Aterrizando = %b, TAterrizaje = %f"), bIsLanding, landingTime));
+		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Orange, FString::Printf(TEXT("Aterrizando = %d, TAterrizaje = %f"), (bIsLanding) ? 1 : 0, landingTime));
 }
 
+void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	AStage* stage = Cast<AStage>(OtherActor);
+	if (stage)
+	{
+		if (!stage->bInitialStage)
+		{
+			bIsLanding = true;
+			bCanTurn = !bIsLanding;
+			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Inicio aterrizaje")));
+		}
+	}
+}
+
+void ASDPawn::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	bIsLanding = false;
+	landingTime = 5.0f;
+	bCanTurn = !bIsLanding;
+	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
+}

@@ -9,6 +9,8 @@ void ASpatialDisplacementGameModeBase::BeginPlay()
 {
     Super::BeginPlay();
 
+    currentLevel = UGameplayStatics::GetCurrentLevelName(GetWorld(), true);
+
     CameraActor = Cast<ASDCameraActor>(UGameplayStatics::GetActorOfClass(GetWorld(), ASDCameraActor::StaticClass()));
 
     if (CameraActor)

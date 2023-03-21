@@ -18,6 +18,12 @@ protected:
 	virtual void BeginPlay() override;
 
 public:
+	UPROPERTY(VisibleDefaultsOnly)
+		FString currentLevel;
+
 	UPROPERTY(Transient)
 		TObjectPtr<class ASDCameraActor> CameraActor;
+
+	UPROPERTY(EditDefaultsOnly, Category = "WinConditions")
+		float landingTime = 5.f;
 };
