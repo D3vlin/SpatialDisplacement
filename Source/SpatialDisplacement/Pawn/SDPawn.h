@@ -57,6 +57,12 @@ public:
 	UPROPERTY(Transient)
 		UWorld* currentWorld;
 
+	UPROPERTY(Transient)
+		bool bIsTransported;
+
+	UPROPERTY(Transient)
+		class ATransportZone* currentTransport;
+
 
 protected:
 	// Called when the game starts or when spawned

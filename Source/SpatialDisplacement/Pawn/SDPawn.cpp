@@ -6,6 +6,7 @@
 #include "Kismet/KismetMathLibrary.h"
 #include "SpatialDisplacement/General/SpatialDisplacementGameModeBase.h"
 #include "SpatialDisplacement/Actor/Stage.h"
+#include "SpatialDisplacement/Actor/TransportZone.h"
 
 // Sets default values
 ASDPawn::ASDPawn()
@@ -92,9 +93,9 @@ void ASDPawn::ToLand(float DeltaTime) {
 }
 
 void ASDPawn::PrintState() {
-	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
+	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
 	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("R Inicial = %s, R Actual = %s"), *initialRotation.ToString(), *GetActorRotation().ToString()));
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Puede rotar = %d"), (bCanTurn) ? 1 : 0));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Puede rotar = %d"), (bCanTurn) ? 1 : 0));
 	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Fuel = %f"), fuel));
 	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Velocidad = %s"), *StaticMesh->GetComponentVelocity().ToString()));
 
@@ -106,9 +107,10 @@ void ASDPawn::PrintState() {
 
 void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	AStage* stage = Cast<AStage>(OtherActor);
-	if (stage)
+	if (OtherActor->IsA(AStage::StaticClass()))
 	{
+		AStage* stage = Cast<AStage>(OtherActor);
+
 		bCanTurn = false;
 		if (!stage->bInitialStage)
 		{
@@ -116,12 +118,40 @@ void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AA
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Inicio aterrizaje")));
 		}
 	}
+	else if (OtherActor->IsA(ATransportZone::StaticClass()))
+	{
+		currentTransport = Cast<ATransportZone>(OtherActor);
+		if (currentTransport->TargetZone && !bIsTransported)
+		{
+			FVector currentLocation = GetActorLocation();
+			FVector targetLocation = currentTransport->TargetZone->GetActorLocation();
+
+			if (currentTransport->TransportAxis == ECartesianDirection::Z)
+				targetLocation.Y = currentLocation.Y;
+			else if (currentTransport->TransportAxis == ECartesianDirection::Y)
+				targetLocation.Z = currentLocation.Z;
+
+			bIsTransported = true;
+			SetActorLocation(targetLocation);
+		}
+	}
 }
 
 void ASDPawn::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
-	bIsLanding = false;
-	landingTime = SDGameMode->landingTime;
-	bCanTurn = !bIsLanding;
-	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
+	if (OtherActor->IsA(AStage::StaticClass()))
+	{
+		bIsLanding = false;
+		landingTime = SDGameMode->landingTime;
+		bCanTurn = !bIsLanding;
+		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
+	}
+	else if (OtherActor->IsA(ATransportZone::StaticClass()))
+	{
+		if (currentTransport != Cast<ATransportZone>(OtherActor))
+		{
+			bIsTransported = false;
+			currentTransport = nullptr;
+		}
+	}
 }

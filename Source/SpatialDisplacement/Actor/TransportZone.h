@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Actor/Zone.h"
+#include "Enums/CartesianDirectionEnum.h"
 #include "TransportZone.generated.h"
 
 /**
@@ -18,11 +19,8 @@ public:
 	ATransportZone();
 
 	UPROPERTY(EditInstanceOnly)
-		USceneComponent* TargetPosition;
-
-	UPROPERTY(EditInstanceOnly)
 		ATransportZone* TargetZone;
 
-	virtual void PostEditChangeProperty(FPropertyChangedEvent& PropertyChangedEvent) override;
-	
+	UPROPERTY(EditInstanceOnly)
+		ECartesianDirection TransportAxis = ECartesianDirection::X;
 };
