@@ -16,19 +16,6 @@ class SPATIALDISPLACEMENT_API ASDGameStateBase : public AGameStateBase
 
 protected:
 	virtual void BeginPlay() override;
-	
-public:
-	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
-		float landingTime;
-
-	UPROPERTY(VisibleDefaultsOnly)
-		FString currentLevel;
-
-	UFUNCTION()
-		void RestartLevel();
-
-	UFUNCTION()
-		void OpenLevel();
 
 private:
 	UPROPERTY(Transient)

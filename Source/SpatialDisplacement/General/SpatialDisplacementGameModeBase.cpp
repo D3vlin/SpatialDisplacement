@@ -18,3 +18,15 @@ void ASpatialDisplacementGameModeBase::BeginPlay()
 
     GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("GameMode Ready!"));
 }
+
+void ASpatialDisplacementGameModeBase::RestartLevel()
+{
+    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Red, TEXT("Reiniciando!"));
+    FTimerHandle Timer;
+    GetWorldTimerManager().SetTimer(Timer, this, &ASpatialDisplacementGameModeBase::OpenLevel, 3.0f, false);
+}
+
+void ASpatialDisplacementGameModeBase::OpenLevel()
+{
+    UGameplayStatics::OpenLevel(GetWorld(), FName(currentLevel));
+}

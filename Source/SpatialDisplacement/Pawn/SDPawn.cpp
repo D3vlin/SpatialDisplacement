@@ -4,7 +4,7 @@
 #include "SDPawn.h"
 #include "Kismet/GamePlayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
-#include "SpatialDisplacement/General/SDGameStateBase.h"
+#include "SpatialDisplacement/General/SpatialDisplacementGameModeBase.h"
 #include "SpatialDisplacement/Actor/Stage.h"
 
 // Sets default values
@@ -32,10 +32,12 @@ ASDPawn::ASDPawn()
 void ASDPawn::BeginPlay()
 {
 	Super::BeginPlay();
-	
+
 	currentWorld = GetWorld();
+	SDGameMode = (ASpatialDisplacementGameModeBase*) currentWorld->GetAuthGameMode();
 	currentLevel = UGameplayStatics::GetCurrentLevelName(currentWorld, false);
 	initialRotation = GetActorRotation();
+	landingTime = SDGameMode->landingTime;
 }
 
 // Called every frame
@@ -65,6 +67,7 @@ void ASDPawn::Up(float AxisValue) {
 	{
 		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Red, TEXT("Empty!"));
 		bEmptyFuel = true;
+		SDGameMode->RestartLevel();
 	}
 }
 
@@ -84,10 +87,8 @@ void ASDPawn::ToLand(float DeltaTime) {
 		SetActorRotation(targetRotation);
 	}
 
-	if (landingTime <= 0) {
-		ASDGameStateBase* GameState = GetWorld()->GetGameState<ASDGameStateBase>();
-		GameState->RestartLevel();
-	}
+	if (landingTime <= 0)
+		SDGameMode->RestartLevel();
 }
 
 void ASDPawn::PrintState() {
@@ -108,10 +109,10 @@ void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AA
 	AStage* stage = Cast<AStage>(OtherActor);
 	if (stage)
 	{
+		bCanTurn = false;
 		if (!stage->bInitialStage)
 		{
 			bIsLanding = true;
-			bCanTurn = !bIsLanding;
 			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Inicio aterrizaje")));
 		}
 	}
@@ -120,7 +121,7 @@ void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AA
 void ASDPawn::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
 {
 	bIsLanding = false;
-	landingTime = 5.0f;
+	landingTime = SDGameMode->landingTime;
 	bCanTurn = !bIsLanding;
 	GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
 }

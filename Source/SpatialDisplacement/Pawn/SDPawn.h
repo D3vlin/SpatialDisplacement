@@ -25,7 +25,7 @@ public:
 		float torqueForce = 75.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
-		float fuel = 8.f;
+		float fuel = 10.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 		float massInKg = 0.01f;
@@ -44,7 +44,7 @@ public:
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
 		bool bIsLanding = false;
-
+	
 	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
 		bool bEmptyFuel = false;
 
@@ -52,7 +52,11 @@ public:
 		FString currentLevel;
 
 	UPROPERTY(Transient)
+		class ASpatialDisplacementGameModeBase* SDGameMode;
+
+	UPROPERTY(Transient)
 		UWorld* currentWorld;
+
 
 protected:
 	// Called when the game starts or when spawned

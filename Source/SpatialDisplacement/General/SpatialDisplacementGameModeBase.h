@@ -26,4 +26,10 @@ public:
 
 	UPROPERTY(EditDefaultsOnly, Category = "WinConditions")
 		float landingTime = 5.f;
+
+	UFUNCTION()
+		void RestartLevel();
+
+	UFUNCTION()
+		void OpenLevel();
 };
