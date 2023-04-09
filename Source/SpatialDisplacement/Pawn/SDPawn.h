@@ -24,7 +24,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 		float torqueForce = 75.f;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		float fuel = 10.f;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
@@ -33,14 +33,17 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "Movement")
 		float angularDamping = 100.f;
 
-	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
+	UPROPERTY(VisibleDefaultsOnly, BlueprintReadOnly, Category = "Movement")
 		bool bCanTurn = false;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "Movement")
 		FRotator initialRotation;
 
+	UPROPERTY(EditDefaultsOnly, Category = "Movement")
+		float MaxSpeed = 1000.f;
+
 	UPROPERTY(EditDefaultsOnly, Category = "WinConditions")
-		float landingTime = 5.f;
+		float landingTime;
 
 	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
 		bool bIsLanding = false;
@@ -51,8 +54,14 @@ public:
 	UPROPERTY(VisibleDefaultsOnly, Category = "WinConditions")
 		FString currentLevel;
 
+	UPROPERTY(BlueprintReadOnly)
+		FString message;
+
 	UPROPERTY(Transient)
 		class ASpatialDisplacementGameModeBase* SDGameMode;
+
+	UPROPERTY(Transient)
+		class ASDGameStateBase* SDGameState;
 
 	UPROPERTY(Transient)
 		UWorld* currentWorld;
@@ -80,6 +89,10 @@ private:
 	void ToLand(float DeltaTime);
 
 	void PrintState();
+
+	void showMessage(FString inMessage);
+
+	void clearMessage();
 
 	UFUNCTION()
 		void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);

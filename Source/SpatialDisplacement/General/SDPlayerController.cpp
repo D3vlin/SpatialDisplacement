@@ -17,7 +17,7 @@ void ASDPlayerController::BeginPlay()
 
     SetupInputComponent();
 
-    GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("PlayerController Ready!"));
+    //GEngine->AddOnScreenDebugMessage(-1, 10.0f, FColor::Green, TEXT("PlayerController Ready!"));
 }
 
 void ASDPlayerController::SetupInputComponent()

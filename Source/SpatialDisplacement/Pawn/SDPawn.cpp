@@ -5,6 +5,7 @@
 #include "Kismet/GamePlayStatics.h"
 #include "Kismet/KismetMathLibrary.h"
 #include "SpatialDisplacement/General/SpatialDisplacementGameModeBase.h"
+#include "SpatialDisplacement/General/SDGameStateBase.h"
 #include "SpatialDisplacement/Actor/Stage.h"
 #include "SpatialDisplacement/Actor/TransportZone.h"
 
@@ -36,6 +37,7 @@ void ASDPawn::BeginPlay()
 
 	currentWorld = GetWorld();
 	SDGameMode = (ASpatialDisplacementGameModeBase*) currentWorld->GetAuthGameMode();
+	SDGameState = (ASDGameStateBase*) currentWorld->GetGameState();
 	currentLevel = UGameplayStatics::GetCurrentLevelName(currentWorld, false);
 	initialRotation = GetActorRotation();
 	landingTime = SDGameMode->landingTime;
@@ -68,7 +70,9 @@ void ASDPawn::Up(float AxisValue) {
 	{
 		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Red, TEXT("Empty!"));
 		bEmptyFuel = true;
-		SDGameMode->RestartLevel();
+
+		if(!SDGameState->bIsRestarting)
+			SDGameState->RestartLevel();
 	}
 }
 
@@ -88,21 +92,38 @@ void ASDPawn::ToLand(float DeltaTime) {
 		SetActorRotation(targetRotation);
 	}
 
-	if (landingTime <= 0)
-		SDGameMode->RestartLevel();
+	if (landingTime <= 0 && !SDGameState->bIsRestarting)
+		SDGameState->RestartLevel();
+}
+
+void ASDPawn::showMessage(FString inMessage)
+{
+	message = inMessage;
+
+	FTimerHandle Timer;
+	GetWorld()->GetTimerManager().SetTimer(Timer, this, &ASDPawn::clearMessage, 3.0f, false);
+}
+
+void ASDPawn::clearMessage()
+{
+	message = "";
 }
 
 void ASDPawn::PrintState() {
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Ubicacion = %s"), *GetActorLocation().ToString()));
 	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("R Inicial = %s, R Actual = %s"), *initialRotation.ToString(), *GetActorRotation().ToString()));
 	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Puede rotar = %d"), (bCanTurn) ? 1 : 0));
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Fuel = %f"), fuel));
-	GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Velocidad = %s"), *StaticMesh->GetComponentVelocity().ToString()));
-
-	if (landingTime <= 0)
-		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Green, FString::Printf(TEXT("Aterrizaste")));
-	else
-		GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Orange, FString::Printf(TEXT("Aterrizando = %d, TAterrizaje = %f"), (bIsLanding) ? 1 : 0, landingTime));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Fuel = %f"), fuel));
+	//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Yellow, FString::Printf(TEXT("Velocidad = %s"), *StaticMesh->GetComponentVelocity().ToString()));
+	if (bIsLanding)
+	{
+		if (landingTime <= 0)
+			showMessage("Aterrizaste");
+		//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Green, FString::Printf(TEXT("Aterrizaste")));
+		else
+			showMessage("Aterrizando...");
+		//GEngine->AddOnScreenDebugMessage(-1, .0f, FColor::Orange, FString::Printf(TEXT("Aterrizando = %d, TAterrizaje = %f"), (bIsLanding) ? 1 : 0, landingTime));
+	}
 }
 
 void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
@@ -115,7 +136,8 @@ void ASDPawn::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AA
 		if (!stage->bInitialStage)
 		{
 			bIsLanding = true;
-			GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Inicio aterrizaje")));
+			showMessage("Inicio aterrizaje");
+			//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Inicio aterrizaje")));
 		}
 	}
 	else if (OtherActor->IsA(ATransportZone::StaticClass()))
@@ -144,7 +166,8 @@ void ASDPawn::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AAct
 		bIsLanding = false;
 		landingTime = SDGameMode->landingTime;
 		bCanTurn = !bIsLanding;
-		GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
+		showMessage("Plataforma abandonada");
+		//GEngine->AddOnScreenDebugMessage(-1, 2.0f, FColor::Orange, FString::Printf(TEXT("Plataforma abandonada")));
 	}
 	else if (OtherActor->IsA(ATransportZone::StaticClass()))
 	{

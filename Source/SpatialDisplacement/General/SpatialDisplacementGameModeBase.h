@@ -27,6 +27,9 @@ public:
 	UPROPERTY(EditDefaultsOnly, Category = "WinConditions")
 		float landingTime = 5.f;
 
+	UPROPERTY(EditDefaultsOnly, Category = "WinConditions")
+		float time = 20.f;
+
 	UFUNCTION()
 		void RestartLevel();
 

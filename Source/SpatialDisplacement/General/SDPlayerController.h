@@ -19,12 +19,13 @@ public:
 
 	virtual void SetupInputComponent()override;
 
+	UPROPERTY(BlueprintReadOnly)
+		class ASDPawn* PawnActor;
+
 protected:
 	virtual void BeginPlay() override;
 	
 private:
-	UPROPERTY(Transient)
-		class ASDPawn* PawnActor;
 
 	void Up(float AxisValue);
 
